@@ -1,0 +1,12 @@
+{
+  "name": "receipt-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "외근 영수증 증빙 사이트용 휴대폰→PC 사진 중계 서버",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
