@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>외근 영수증 증빙</title>
+<meta name="theme-color" content="#b3261e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="영수증 증빙">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap">
+<style>
+/* Layout: 왼쪽은 작성 순서(외근 정보 → 영수증 → 항목), 오른쪽은 A4 미리보기가 따라오는 2단 작업대 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1d2321; --muted:#5f6864; --line:#d9ddda;
+  --accent:#b3261e; --accent-ink:#ffffff; --accent-soft:#f7e4e2;
+  --ok:#2e6b4a; --ok-soft:#e1efe7; --warn:#8a5a00; --warn-soft:#f6ecd6;
+  --paper-shadow:0 1px 2px rgba(20,30,25,.12),0 8px 24px rgba(20,30,25,.08);
+  --f-ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-doc:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151918; --panel:#1e2321; --ink:#e7ebe9; --muted:#9aa49f; --line:#333a37;
+  --accent:#e2675e; --accent-ink:#1a0d0c; --accent-soft:#3a201e;
+  --ok:#7fc59d; --ok-soft:#1f3329; --warn:#e3b45c; --warn-soft:#3a2f18;
+  --paper-shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151918; --panel:#1e2321; --ink:#e7ebe9; --muted:#9aa49f; --line:#333a37;
+  --accent:#e2675e; --accent-ink:#1a0d0c; --accent-soft:#3a201e;
+  --ok:#7fc59d; --ok-soft:#1f3329; --warn:#e3b45c; --warn-soft:#3a2f18;
+  --paper-shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.4); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:18px}
+header.top h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--muted)}
+.ai-pill{border:0;cursor:default;font:inherit;font-size:12px;min-height:0!important;margin-left:auto;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--line);color:var(--muted)}
+.ai-pill.on{background:var(--ok-soft);color:var(--ok)}
+.ai-pill.off{background:var(--warn-soft);color:var(--warn)}
+.grid{display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+section.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.step{display:flex;align-items:center;gap:10px}
+.step b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--panel);font-size:12px;font-weight:600;flex:none}
+.step h2{font-size:15px;font-weight:600;margin:0}
+.step .sub{margin-left:auto;font-size:12px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;min-width:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;width:100%}
+textarea{resize:vertical;min-height:60px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 78px 84px 28px;grid-template-areas:"f t m a x";gap:6px;align-items:center}
+.seg .f{grid-area:f}.seg .t{grid-area:t}.seg .m{grid-area:m}.seg .a{grid-area:a}.seg .x{grid-area:x}
+.seg-head{font-size:11px;color:var(--muted)}
+@media (max-width:520px){.seg{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 28px;grid-template-areas:"f t x" "m a x";padding-bottom:6px;border-bottom:1px solid var(--line)}.seg-head{display:none}}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px}
+button:hover:not(:disabled){border-color:var(--muted)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 8px}
+button.icon{width:28px;height:28px;padding:0;display:grid;place-items:center;font-size:14px;line-height:1}
+.drop{border:1.5px dashed var(--line);border-radius:8px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;background:var(--bg)}
+.drop.over{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.drop strong{color:var(--ink);font-weight:600}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.thumb{border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+.thumb img{width:100%;height:96px;object-fit:cover;object-position:top;display:block;background:#fff}
+.thumb .st{font-size:11px;padding:4px 6px;line-height:1.35;color:var(--muted);min-height:34px;word-break:keep-all}
+.thumb .st.ok{color:var(--ok)}.thumb .st.err{color:var(--accent)}
+.thumb .x{position:absolute;top:4px;right:4px;width:22px;height:22px;padding:0;border-radius:50%;font-size:12px;background:var(--panel);opacity:.9}
+.thumb .add{font-size:11px;padding:2px 6px;margin:0 6px 6px}
+.items{display:flex;flex-direction:column;gap:6px}
+.item{display:grid;grid-template-columns:24px 40px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.item .n{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.item img{width:40px;height:40px;object-fit:cover;object-position:top;border-radius:3px;border:1px solid var(--line);background:#fff}
+.item .noimg{width:40px;height:40px;border-radius:3px;border:1px dashed var(--line);font-size:10px;line-height:1.2;color:var(--muted);display:grid;place-items:center;text-align:center}
+.item textarea{background:var(--panel);resize:none;min-height:0;overflow:hidden;line-height:1.4}
+.item .btns{display:flex;gap:2px}
+.notes{font-size:12px;background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;margin:0}
+.notes ul{margin:0;padding-left:18px}
+.status{font-size:12.5px;color:var(--muted);min-height:1.2em;margin:0}
+.status.err{color:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+details.settings summary{cursor:pointer;font-weight:600;font-size:14px}
+details.settings[open] summary{margin-bottom:10px}
+details.settings .body{display:flex;flex-direction:column;gap:10px}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:12px;min-width:0}
+.pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pv-bar .fname{flex:1 1 200px;display:flex;align-items:center;gap:6px;min-width:0}
+.pv-bar .fname input{flex:1}
+.pv-bar .fname span{color:var(--muted);font-size:12px}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;max-height:calc(100vh - 120px);overflow:auto;padding:4px 4px 12px}
+@media (max-width:900px){.preview{position:static}.pages{max-height:none}}
+.page{background:#fff;box-shadow:var(--paper-shadow);aspect-ratio:210/297;width:100%;max-width:100%;position:relative}
+.page canvas{width:100%;height:100%;display:block}
+.page .pno{position:absolute;bottom:-20px;right:0;font-size:11px;color:var(--muted)}
+.example-tag{font-size:12px;background:var(--accent-soft);color:var(--accent);padding:6px 10px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sync{flex-direction:row!important;align-items:center;gap:16px!important}
+.sync .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.sync h2{font-size:15px;font-weight:600;margin:0}
+.sync-state{font-size:12.5px;padding:3px 10px;border-radius:999px;align-self:flex-start;background:var(--line);color:var(--muted)}
+.sync-state.on{background:var(--ok-soft);color:var(--ok)}
+.sync-state.off{background:var(--warn-soft);color:var(--warn)}
+.qr{flex:none;width:148px;height:148px;background:#fff;border-radius:6px;padding:6px;display:grid;place-items:center;font-size:10px;color:#5f6864;text-align:center}
+.qr svg,.qr img{width:100%;height:100%;display:block}
+.only-mobile{display:none}
+.up-btns{display:flex;gap:8px}
+.up-btns button{flex:1;min-height:48px;font-weight:600}
+.mbar{display:none}
+.upmode{max-width:560px;margin:0 auto}
+.upmode h2{font-size:17px;margin:0}
+.upmode .up-btns{display:flex}
+.is-up .grid,.is-up .mbar,.is-up #aiPill,.is-up .wrap>p.hint,.is-up header.top p{display:none!important}
+.is-up .wrap{padding-bottom:32px!important}
+.thumb.fail{border-color:var(--accent)}
+@media (max-width:700px){
+  body{font-size:15px}
+  input,select,textarea{font-size:16px;padding:9px 10px}
+  button{min-height:40px}
+  button.icon{width:40px;height:40px;font-size:16px}
+  .thumb .x{width:30px;height:30px;min-height:30px}
+  .only-mobile{display:flex}
+  .only-desktop{display:none!important}
+  header.top{margin-bottom:12px}
+  header.top h1{font-size:19px}
+  header.top p{font-size:13px}
+  .ai-pill{margin-left:0}
+  .c-sync{order:0}.c-upload{order:1}.c-trip{order:2}.c-items{order:3}.c-settings{order:4}
+  .drop{padding:14px}
+  .thumbs{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .item{grid-template-columns:28px 44px minmax(0,1fr);grid-template-areas:"n i b" "c c c"}
+  .item .n{grid-area:n}.item img,.item .noimg{grid-area:i;width:44px;height:44px}.item .btns{grid-area:b;justify-self:end}.item textarea{grid-area:c}
+  .pages{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:min(78vw,340px);overflow-x:auto;max-height:none;scroll-snap-type:x mandatory}
+  .page{scroll-snap-align:start}
+  .pv-bar .fname{flex-basis:100%}
+  .pv-bar button{flex:1}
+  .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;gap:8px;align-items:center;background:var(--panel);border-top:1px solid var(--line);
+    padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .mbar .info{flex:1;min-width:0;font-size:12.5px;color:var(--muted);line-height:1.35}
+  .mbar button{min-height:46px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>외근 영수증 증빙</h1>
+    <p>영수증 사진을 올리면 이동 순서대로 정리해 A4 2단 첨부 문서를 만들어 줍니다.</p>
+    <button type="button" class="ai-pill" id="aiPill">글자 인식 준비 중…</button>
+  </header>
+
+  <section id="upMode" class="card upmode" hidden>
+    <h2>PC로 영수증 보내기</h2>
+    <p class="hint">사진을 고르면 바로 PC 화면으로 넘어가요. 사진은 PC가 받는 즉시 중계 서버에서 지워지고, 늦어도 1시간 뒤 자동으로 지워집니다.</p>
+    <div class="up-btns">
+      <button class="primary" id="upPick">사진·캡처 선택</button>
+      <button id="upCam">카메라로 찍기</button>
+    </div>
+    <input type="file" id="upFile" accept="image/*" multiple class="sr">
+    <input type="file" id="upCamIn" accept="image/*" capture="environment" class="sr">
+    <p class="status" id="upStatus"></p>
+    <div class="thumbs" id="upList"></div>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card sync c-sync">
+        <div class="txt">
+          <div id="relayBox" hidden>
+            <h2>휴대폰으로 영수증 보내기</h2>
+            <p class="hint">휴대폰 카메라로 QR을 찍으면 업로드 화면이 열려요. 사진을 고르면 이 화면에 바로 들어옵니다. 로그인이나 앱 설치는 필요 없어요.</p>
+            <span class="sync-state" id="relayState">준비 중…</span>
+            <div class="actions"><button class="ghost" id="relayResume" hidden>다시 받기</button><button class="ghost" id="relayNew" style="padding-left:0">새 QR 만들기</button></div>
+          </div>
+          <div id="howBox">
+            <h2>휴대폰에서 바로 만들기</h2>
+            <p class="hint">영수증 사진·캡처를 고르고 ‘문서 만들기’를 누른 뒤, <b>PDF 보내기</b>로 Teams 본인 채팅이나 카톡 ‘나와의 채팅’, 메일로 보내면 PC에서 받을 수 있어요.</p>
+          </div>
+          <div class="actions"><button class="ghost" id="newTrip" style="padding-left:0">새 외근 시작 (영수증·항목 비우기)</button></div>
+        </div>
+        <div class="qr" id="qr" hidden aria-label="휴대폰으로 찍을 QR 코드"></div>
+      </section>
+
+      <section class="card c-settings">
+        <details class="settings" id="settingsBox">
+          <summary>내 설정 <span class="hint" style="font-weight:400">· 이름, 식대 표기, 장소명 변환 (이 기기에 저장)</span></summary>
+          <div class="body">
+            <div class="row2">
+              <label class="f">이름<input id="sName" placeholder="예: 홍길동"></label>
+              <label class="f">식대 표기<input id="sMeal" placeholder="직원식대_CRA{이름}"></label>
+            </div>
+            <p class="hint">식대 표기의 {이름}은 위 이름으로 바뀝니다. 예: 직원식대_CRA홍길동</p>
+            <label class="f">장소명 변환 규칙 <span style="font-weight:400">(한 줄에 하나, "원래 이름 → 바꿀 이름")</span>
+              <textarea id="sRules" rows="5"></textarea></label>
+            <label class="f">한 페이지에 넣을 영수증 수
+              <select id="sPer"><option value="2">2장 (좌우 2단, 크게)</option><option value="4">4장 (2단 × 2줄)</option></select></label>
+          </div>
+        </details>
+      </section>
+
+      <section class="card c-trip">
+        <div class="step"><b>1</b><h2>외근 정보</h2></div>
+        <label class="f">외근일자<input type="date" id="tDate"></label>
+        <label class="f">이동 경로<textarea id="tRoute" rows="2" placeholder="자택 > 서울역 > 동대구역 > 계명대학교 동산병원 > 동대구역 > 서울역 > 자택"></textarea></label>
+        <div>
+          <div style="font-size:12px;color:var(--muted);font-weight:500;margin-bottom:4px">영수증 없는 구간 (지하철·버스 등)</div>
+          <div class="seg seg-head"><span class="f">출발</span><span class="t">도착</span><span class="m">수단</span><span class="a">금액(원)</span><span class="x"></span></div>
+          <div id="segList" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
+          <button class="ghost" id="addSeg" style="margin-top:4px">+ 구간 추가</button>
+        </div>
+        <label class="f">식대 뒤에 붙일 메모 <span style="font-weight:400">(선택)</span>
+          <input id="tMealNote" placeholder="예: (의뢰사 청구 비용 10,000원)"></label>
+      </section>
+
+      <section class="card c-upload">
+        <div class="step"><b>2</b><h2>영수증 올리기</h2><span class="sub" id="rcptCount"></span></div>
+        <div class="up-btns only-mobile">
+          <button class="primary" id="pickBtn">사진·캡처 선택</button>
+          <button id="camBtn">카메라로 찍기</button>
+        </div>
+        <div class="drop only-desktop" id="drop" tabindex="0" role="button" aria-label="영수증 이미지 선택">
+          <strong>영수증 이미지를 끌어다 놓거나 눌러서 선택</strong><br>
+          <span style="font-size:12px">여러 장 한 번에 · JPG, PNG, WEBP · 같은 파일은 한 번만 들어갑니다</span>
+        </div>
+        <input type="file" id="file" accept="image/*" multiple class="sr">
+        <input type="file" id="cam" accept="image/*" capture="environment" class="sr">
+        <div class="thumbs" id="thumbs"></div>
+      </section>
+
+      <section class="card c-items">
+        <div class="step"><b>3</b><h2>문서 항목</h2><span class="sub">번호는 순서대로 자동</span></div>
+        <div class="actions">
+          <button class="primary" id="genBtn">증빙 문서 만들기</button>
+          <button class="ghost" id="addText">+ 설명만 있는 줄</button>
+        </div>
+        <p class="status" id="genStatus"></p>
+        <div id="notes"></div>
+        <div class="items" id="items"></div>
+        <p class="hint" id="itemsHint">‘증빙 문서 만들기’를 누르면 영수증과 이동 경로로 항목을 정리합니다. 만든 뒤 설명을 고치거나 ↑↓로 순서를 바꿀 수 있어요.</p>
+      </section>
+    </div>
+
+    <div class="preview">
+      <div class="pv-bar">
+        <div class="fname"><input id="fname" aria-label="파일 이름"><span>.pdf / .docx</span></div>
+        <button class="primary share-only" id="pdfShare" hidden>PDF 보내기</button>
+        <button class="primary" id="pdfBtn">PDF 저장</button>
+        <button id="docxBtn">Word 저장</button>
+        <button class="primary" id="shareReady" hidden>눌러서 보내기</button>
+      </div>
+      <p class="status" id="exportStatus" style="margin:-4px 2px 0"></p>
+      <div id="exampleTag" class="example-tag">예시 미리보기입니다. 영수증을 올리고 문서를 만들면 실제 내용으로 바뀝니다.</div>
+      <div class="pages" id="pages"></div>
+    </div>
+  </div>
+  <div class="mbar" id="mbar">
+    <div class="info" id="mbarInfo">영수증을 올려 주세요</div>
+    <button id="mGen">문서 만들기</button>
+    <button class="primary" id="mPdf">PDF 보내기</button>
+  </div>
+  <p class="hint" style="margin-top:24px">영수증 글자 인식과 문서 만들기는 모두 이 기기 안에서 처리됩니다. QR로 휴대폰에서 보낸 사진만 중계 서버를 잠깐 거치며, PC가 받는 즉시(늦어도 1시간 뒤) 지워집니다. 올린 영수증은 ‘새 외근 시작’을 누르기 전까지 이 기기 브라우저에 임시 보관됩니다. 사용한 공개 소프트웨어: Tesseract OCR·tesseract.js-core (<a href="tesseract-LICENSE.txt">Apache-2.0</a>), jsPDF (<a href="jspdf-LICENSE.txt">MIT</a>), JSZip (<a href="jszip-LICENSE.txt">MIT/GPLv3</a>), QR Code Generator (<a href="qrcode-LICENSE.txt">MIT</a>)</p>
+</div>
+
+<script src="config.js"></script>
+<script src="qrcode.js"></script>
+<script src="jspdf.umd.min.js"></script>
+<script src="jszip.min.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const RELAY = String(window.RECEIPT_RELAY || "").trim().replace(/\/+$/, "");
+const UP_SID = (location.search.match(/[?&]up=([A-Za-z0-9_-]{20,64})/) || [])[1] || "";
+const IS_DESKTOP = window.matchMedia("(min-width: 701px)").matches && !window.matchMedia("(pointer: coarse)").matches;
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const DEFAULT_RULES = ["서울 → 서울역", "용산 → 용산역", "대전 → 대전역", "서대전 → 서대전역", "동대구 → 동대구역", "서대구 → 서대구역", "코레일관광개발 서울본사 → 서울역"].join("\n");
+const settings = Object.assign({ name: "", mealTpl: "직원식대_CRA{이름}", rules: DEFAULT_RULES, perPage: 2 }, LS.get("rcpt.settings", {}));
+const trip = Object.assign({ date: "", route: "", mealNote: "", segments: [] }, LS.get("rcpt.trip", {}));
+if (!trip.segments.length) trip.segments = [{ from: "", to: "", mode: "지하철", amount: "" }];
+
+let receipts = [];   // {id, name, hash, blob, url, src(canvas), w, h, status, data, err}
+let items = [];      // {id, receiptId|null, comment}
+let notes = [];
+let downloads = {};
+let uid = 0; const nid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + (++uid);
+
+/* ---------- 설정/외근 정보 바인딩 ---------- */
+const saveSettings = () => { LS.set("rcpt.settings", settings); queueWrite("settings"); };
+const saveTrip = () => { LS.set("rcpt.trip", trip); queueWrite("trip"); };
+$("#sName").value = settings.name; $("#sMeal").value = settings.mealTpl;
+$("#sRules").value = settings.rules; $("#sPer").value = String(settings.perPage);
+if (!settings.name) $("#settingsBox").open = true;
+$("#sName").addEventListener("input", e => { settings.name = e.target.value.trim(); saveSettings(); schedule(); });
+$("#sMeal").addEventListener("input", e => { settings.mealTpl = e.target.value; saveSettings(); });
+$("#sRules").addEventListener("input", e => { settings.rules = e.target.value; saveSettings(); });
+$("#sPer").addEventListener("change", e => { settings.perPage = Number(e.target.value); saveSettings(); schedule(); });
+$("#tDate").value = trip.date; $("#tRoute").value = trip.route; $("#tMealNote").value = trip.mealNote || "";
+$("#tDate").addEventListener("input", e => { trip.date = e.target.value; saveTrip(); setDefaultName(); });
+$("#tRoute").addEventListener("input", e => { trip.route = e.target.value; saveTrip(); });
+$("#tMealNote").addEventListener("input", e => { trip.mealNote = e.target.value; saveTrip(); });
+
+const mealLabel = () => (settings.mealTpl || "직원식대_CRA{이름}").replace(/\{이름\}/g, settings.name || "") + (trip.mealNote && trip.mealNote.trim() ? trip.mealNote.trim() : "");
+
+let fnameTouched = false;
+function setDefaultName() {
+  if (fnameTouched) return;
+  const d = (trip.date || "").replace(/-/g, "");
+  $("#fname").value = "영수증증빙" + (d ? "_" + d : "");
+}
+$("#fname").addEventListener("input", () => { fnameTouched = true; });
+setDefaultName();
+
+function renderSegs() {
+  const box = $("#segList"); box.innerHTML = "";
+  trip.segments.forEach((s, i) => {
+    const row = document.createElement("div"); row.className = "seg";
+    row.innerHTML = `<input class="f" aria-label="출발" placeholder="출발 (예: 자택)" id="sg-f-${i}"><input class="t" aria-label="도착" placeholder="도착 (예: 서울역)" id="sg-t-${i}">
+      <select class="m" aria-label="수단" id="sg-m-${i}"><option>지하철</option><option>버스</option><option>기타</option></select>
+      <input class="a" aria-label="금액" inputmode="numeric" placeholder="1550" id="sg-a-${i}">
+      <button class="icon ghost x" aria-label="구간 삭제">✕</button>`;
+    const [f, t, m, a] = row.querySelectorAll("input,select");
+    f.value = s.from; t.value = s.to; m.value = s.mode || "지하철"; a.value = s.amount;
+    f.oninput = () => { s.from = f.value; saveTrip(); };
+    t.oninput = () => { s.to = t.value; saveTrip(); };
+    m.onchange = () => { s.mode = m.value; saveTrip(); };
+    a.oninput = () => { s.amount = a.value.replace(/[^\d]/g, ""); saveTrip(); };
+    row.querySelector("button").onclick = () => { trip.segments.splice(i, 1); saveTrip(); renderSegs(); };
+    box.append(row);
+  });
+}
+$("#addSeg").onclick = () => { trip.segments.push({ from: "", to: "", mode: "지하철", amount: "" }); saveTrip(); renderSegs(); };
+renderSegs();
+
+/* ---------- 런타임 기능 ---------- */
+let ocrState = "loading";
+function setPill() {
+  const p = $("#aiPill");
+  if (ocrState === "ready") { p.className = "ai-pill on"; p.textContent = "영수증 읽기 준비됨 · 이 브라우저에서 처리"; }
+  else if (ocrState === "fail") { p.className = "ai-pill off"; p.textContent = "글자 인식을 불러오지 못함 · 눌러서 원인 보기·다시 시도"; const s = $("#genStatus"); s.className = "status err"; s.textContent = "원인: " + ocrErr; }
+  else { p.className = "ai-pill"; p.textContent = "글자 인식 준비 중… (처음 한 번 약 6MB)"; }
+}
+
+
+/* ---------- 글자 인식(OCR): 브라우저 안에서 처리, 외부 전송 없음 ---------- */
+function WORKER_MAIN() {
+  let M = null, api = null;
+  self.onmessage = async (e) => {
+    const m = e.data;
+    try {
+      if (m.type === "init") {
+        M = await TesseractCore({});
+        M.FS.writeFile("./kor.traineddata", new Uint8Array(m.data));
+        api = new M.TessBaseAPI();
+        if (api.Init(null, "kor", 1) !== 0) throw new Error("init failed");
+        api.SetVariable("tessedit_pageseg_mode", "6");
+        api.SetVariable("preserve_interword_spaces", "1");
+        self.postMessage({ type: "ready" });
+      } else if (m.type === "ocr") {
+        M.FS.writeFile("/input", new Uint8Array(m.png));
+        if (api.SetImageFile(1, 0) === 1) throw new Error("image read failed");
+        api.Recognize(null);
+        self.postMessage({ type: "result", id: m.id, text: api.GetUTF8Text() });
+      }
+    } catch (err) {
+      self.postMessage({ type: m.type === "init" ? "error" : "fail", id: m.id, message: String((err && err.message) || err) });
+    }
+  };
+}
+let ocrRun = null, ocrReady = null, ocrSeq = 0, ocrErr = ""; const ocrJobs = new Map();
+const OCR_FILES = { simd: "tesseract-core-simd-lstm.wasm.js", plain: "tesseract-core-lstm.wasm.js", data: "kor.traineddata" };
+async function fetchFile(p, how) {
+  let r;
+  try { r = await fetch(p); } catch (e) { throw new Error(`${p} 내려받기 실패 (${(e && e.message) || e})`); }
+  if (!r.ok) throw new Error(`${p} 파일이 서버에 없어요 (${r.status})`);
+  return r[how]();
+}
+function withTimeout(p, ms, what) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + " 시간 초과")), ms))]); }
+async function startWorker(coreText, data) {
+  const url = URL.createObjectURL(new Blob([coreText, "\n;(" + WORKER_MAIN.toString() + ")();"], { type: "text/javascript" }));
+  const w = new Worker(url);
+  try {
+    await withTimeout(new Promise((res, rej) => {
+      w.onmessage = e => { if (e.data.type === "ready") res(); else if (e.data.type === "error") rej(new Error(e.data.message)); };
+      w.onerror = e => { e.preventDefault && e.preventDefault(); rej(new Error(e.message || "worker error")); };
+      w.postMessage({ type: "init", data }, [data]);
+    }), 90000, "엔진 시작");
+  } catch (e) { w.terminate(); throw e; }
+  w.onmessage = e => { const j = ocrJobs.get(e.data.id); if (!j) return; ocrJobs.delete(e.data.id); e.data.type === "result" ? j.res(e.data.text) : j.rej(new Error(e.data.message)); };
+  w.onerror = null;
+  ocrRun = png => new Promise((res, rej) => { const id = ++ocrSeq; ocrJobs.set(id, { res, rej }); w.postMessage({ type: "ocr", id, png }, [png]); });
+}
+function loadScript(src) {
+  return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error(src + " 불러오기 실패")); document.head.append(s); });
+}
+async function startMain(file, data) {
+  if (typeof window.TesseractCore !== "function") await loadScript(file);
+  const M = await withTimeout(window.TesseractCore({}), 90000, "엔진 시작");
+  M.FS.writeFile("./kor.traineddata", new Uint8Array(data));
+  const api = new M.TessBaseAPI();
+  if (api.Init(null, "kor", 1) !== 0) throw new Error("init failed");
+  api.SetVariable("tessedit_pageseg_mode", "6"); api.SetVariable("preserve_interword_spaces", "1");
+  ocrRun = async png => {
+    await new Promise(r => setTimeout(r, 30));
+    M.FS.writeFile("/input", new Uint8Array(png));
+    if (api.SetImageFile(1, 0) === 1) throw new Error("image read failed");
+    api.Recognize(null); return api.GetUTF8Text();
+  };
+}
+function initOCR() {
+  if (ocrReady) return ocrReady;
+  ocrState = "loading"; ocrErr = ""; setPill();
+  ocrReady = (async () => {
+    let simd = false;
+    try { simd = WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11])); } catch {}
+    if (typeof WebAssembly !== "object") throw new Error("이 브라우저는 WebAssembly를 지원하지 않아요");
+    const data = await fetchFile(OCR_FILES.data, "arrayBuffer");
+    const cores = simd ? [OCR_FILES.simd, OCR_FILES.plain] : [OCR_FILES.plain];
+    const errs = [];
+    if (typeof Worker === "function" && !FORCE_MAIN) {
+      for (const c of cores) {
+        try { const txt = await fetchFile(c, "text"); await startWorker(txt, data.slice(0)); return "worker:" + c; }
+        catch (e) { errs.push(`${c} (백그라운드): ${e.message}`); }
+      }
+    }
+    try { await startMain(OCR_FILES.plain, data.slice(0)); return "main"; }
+    catch (e) { errs.push(`기본 방식: ${e.message}`); }
+    throw new Error(errs.join(" / "));
+  })();
+  ocrReady.then(mode => {
+    console.info("OCR ready:", mode); ocrState = "ready"; setPill();
+    receipts.filter(r => r.status === "manual" && r.src).forEach(enqueueRead);
+  }, err => {
+    console.error("OCR load failed", err); ocrErr = (err && err.message) || String(err); ocrState = "fail"; setPill();
+    receipts.forEach(r => { if (["waiting", "reading", "queued"].includes(r.status)) r.status = "manual"; });
+    renderReceipts();
+  });
+  return ocrReady;
+}
+const FORCE_MAIN = /[?&]ocr=main/.test(location.search);
+$("#aiPill").addEventListener("click", () => {
+  if (ocrState !== "fail") return;
+  const s = $("#genStatus"); s.className = "status err"; s.textContent = "원인: " + ocrErr + " — 다시 불러오는 중…";
+  ocrReady = null; initOCR();
+});
+async function ocrImage(r) {
+  await ocrReady;
+  const k = r.w < 1200 ? 1400 / r.w : r.w > 1800 ? 1600 / r.w : 1;
+  const c = document.createElement("canvas"); c.width = Math.round(r.w * k); c.height = Math.round(r.h * k);
+  const cx = c.getContext("2d"); cx.filter = "grayscale(1)"; cx.imageSmoothingQuality = "high"; cx.drawImage(r.src, 0, 0, c.width, c.height);
+  const blob = await new Promise(res => c.toBlob(res, "image/png"));
+  if (!blob) throw new Error("이미지 변환 실패");
+  return ocrRun(await blob.arrayBuffer());
+}
+if (!UP_SID) setTimeout(initOCR, 300);
+
+
+/* ---------- 영수증 업로드 ---------- */
+const drop = $("#drop"), fileIn = $("#file");
+drop.onclick = () => fileIn.click();
+drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } };
+fileIn.onchange = () => { addFiles([...fileIn.files]); fileIn.value = ""; };
+$("#pickBtn").onclick = () => fileIn.click();
+$("#camBtn").onclick = () => $("#cam").click();
+$("#cam").onchange = e => { addFiles([...e.target.files]); e.target.value = ""; };
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => addFiles([...(e.dataTransfer?.files || [])]));
+document.addEventListener("paste", e => {
+  const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/"));
+  if (fs.length) addFiles(fs);
+});
+
+async function hashOf(buf) {
+  try { const h = await crypto.subtle.digest("SHA-256", buf); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+  catch { return buf.byteLength + ":" + new Uint8Array(buf.slice(0, 64)).join(","); }
+}
+async function addFiles(files) {
+  let added = 0;
+  for (const f of files) {
+    const r = { id: nid("r"), name: f.name || "image", status: "loading", data: null, createdAt: Date.now() };
+    try {
+      const buf = await f.arrayBuffer();
+      const h = await hashOf(buf);
+      if (receipts.some(x => x.hash === h)) { flash(`‘${r.name}’은 이미 올린 영수증이라 건너뛰었어요.`); continue; }
+      r.hash = h; receipts.push(r); added++; renderReceipts();
+      let bmp;
+      try { bmp = await createImageBitmap(new Blob([buf], { type: f.type })); }
+      catch { throw new Error("이 형식은 열 수 없어요. JPG나 PNG로 저장해서 올려 주세요(아이폰 HEIC는 캡쳐로)."); }
+      const MAX = 1800, k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      const cx = c.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, c.width, c.height);
+      cx.imageSmoothingQuality = "high"; cx.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+      r.blob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.88));
+      r.url = URL.createObjectURL(r.blob); r.src = c; r.w = c.width; r.h = c.height;
+      r.status = "queued"; renderReceipts();
+      enqueueRead(r);
+      if (syncOn) uploadReceipt(r);
+    } catch (e) {
+      r.status = "error"; r.err = e.message || "파일을 열 수 없어요."; renderReceipts();
+    }
+  }
+  schedule();
+  return added;
+}
+let flashT;
+function flash(msg) { const s = $("#genStatus"); s.textContent = msg; s.className = "status"; clearTimeout(flashT); flashT = setTimeout(() => { if (s.textContent === msg) s.textContent = ""; }, 5000); }
+
+/* ---------- 영수증 읽기: 글자 인식 → 항목 추출 ---------- */
+const queue = []; let running = false;
+function enqueueRead(r) {
+  if (ocrState === "fail") { r.status = "manual"; renderReceipts(); return; }
+  r.status = "waiting"; r.err = ""; queue.push(r); renderReceipts(); pump();
+}
+async function pump() {
+  if (running) return; running = true;
+  while (queue.length) {
+    const r = queue.shift(); if (!receipts.includes(r)) continue;
+    r.status = "reading"; renderReceipts();
+    try {
+      r.text = await ocrImage(r);
+      r.data = parseReceipt(r.text); r.status = "done";
+      markDup(r);
+      pushData(r);
+    } catch (e) {
+      r.status = ocrState === "fail" ? "manual" : "error"; r.err = "글자를 읽지 못했어요.";
+    }
+    renderReceipts();
+  }
+  running = false; updateGen();
+}
+const sameReceipt = (a, b) => a.kind === b.kind && a.amount > 0 && a.amount === b.amount && a.date === b.date && a.time === b.time && !!a.time;
+const pad = n => String(n).padStart(2, "0");
+function ymd(y, m, d) { y = String(y); if (y.length === 2) y = "20" + y; m = Number(m); d = Number(d); if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return ""; return `${y}-${pad(m)}-${pad(d)}`; }
+function fixTime(t) { const m = String(t).match(/(\d{1,2})\s*[:;.]\s*(\d{2})/); if (!m) return ""; const h = Number(m[1]), mi = Number(m[2]); return h < 24 && mi < 60 ? `${pad(h)}:${m[2]}` : ""; }
+function findDateTimes(s) {
+  const out = []; const re = /(20\d{2}|\d{2})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*일?\s*(?:\([^)]{0,3}\))?\s*(\d{1,2}\s*[:;]\s*\d{2})?/g; let m;
+  while ((m = re.exec(s))) { const date = ymd(m[1], m[2], m[3]); if (date) out.push({ date, time: m[4] ? fixTime(m[4]) : "" }); }
+  return out;
+}
+function findAmount(lines) {
+  const num = s => { const ms = s.match(/\d{1,3}(?:[,.]\d{3})+|\d{4,7}/g) || []; return ms.map(x => Number(x.replace(/[,.]/g, ""))).filter(n => n >= 100 && n < 10000000); };
+  let best = 0;
+  lines.forEach(l => { if (/결제\s*금액|합\s*계|총.{0,6}금액|받을\s*금액|청구\s*금액|승인\s*금액|판매\s*금액/.test(l)) num(l).forEach(n => { if (n > best) best = n; }); });
+  if (!best) lines.forEach(l => { if (/원/.test(l)) num(l).forEach(n => { if (n > best) best = n; }); });
+  return best;
+}
+function parseReceipt(raw) {
+  const lines = String(raw || "").split("\n").map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const flat = lines.join(" ");
+  const has = re => re.test(flat);
+  let kind = "other";
+  if (has(/승차권|KTX|SRT|ITX|무궁화|새마을|코레일|한국철도|에스알|열차|여정\s*정보/i)) kind = "train";
+  else if (has(/택시|운행\s*(정보|시간|요금)|미터기|카카오\s*T|타다|우티/)) kind = "taxi";
+  else if (has(/고속버스|시외버스|버스\s*(승차|티켓)|버스타고/)) kind = "bus";
+  else if (has(/주차/)) kind = "parking";
+  else if (has(/통행료|하이패스|톨게이트/)) kind = "toll";
+  else if (has(/주유|휘발유|경유\s*[\d.]/)) kind = "fuel";
+  else if (has(/식당|음식|한식|중식|일식|분식|카페|커피|김밥|국밥|레스토랑|베이커리|푸드|아워홈|식대|메뉴|매출\s*전표|가맹점|영수증|부가세/)) kind = "meal";
+  const d = { kind, from: "", to: "", date: "", time: "", amount: 0, merchant: "", summary: "" };
+  const find = re => { for (const l of lines) { const m = l.match(re); if (m) return m; } return null; };
+  if (kind === "train") {
+    const m = flat.match(/([가-힣A-Za-z]{1,10})\s*(\d{1,2}\s*[:;.]\s*\d{2})\s*(?:->|→|=>|-|~|>|ㅡ|—|–|\+)*\s*([가-힣A-Za-z]{1,10})\s*(\d{1,2}\s*[:;.]\s*\d{2})/);
+    if (m) { d.from = m[1]; d.to = m[3]; d.time = fixTime(m[2]); }
+    if (!d.time) { // 발행·판매·결제 시각이 아닌 줄에서 첫 시각을 출발 시각으로
+      const l = lines.find(x => !/발행|판매|승인|결제|구매|발권|일시/.test(x) && /\d{1,2}\s*[:;]\s*\d{2}/.test(x));
+      if (l) d.time = fixTime(l.match(/\d{1,2}\s*[:;]\s*\d{2}/)[0]);
+      if (!d.time) d.time = "--";
+    }
+    const dm = find(/(?:이용|승차|탑승|출발)\s*일[자시]?.*?(20\d{2})\s*[년.\-\/]\s*(\d{1,2})\s*[월.\-\/]\s*(\d{1,2})/);
+    if (dm) d.date = ymd(dm[1], dm[2], dm[3]);
+  } else if (kind === "taxi") {
+    const f = find(/^출발(?:지)?\s*[:：]?\s*(.+)$/), t = find(/^도착(?:지)?\s*[:：]?\s*(.+)$/);
+    if (f) d.from = f[1].trim(); if (t) d.to = t[1].trim();
+    const tm = find(/운행\s*시간.*?(\d{1,2}\s*[:;]\s*\d{2})/) || find(/(?:승차|탑승)\s*시간?.*?(\d{1,2}\s*[:;]\s*\d{2})/);
+    if (tm) d.time = fixTime(tm[1]);
+  }
+  const mm = find(/(?:가맹점\s*명|매장\s*명|상호)\s*[:：]?\s*([^\s:：]{2,20})/); if (mm) d.merchant = mm[1];
+  const dts = findDateTimes(flat);
+  if (!d.date && dts.length) d.date = (dts.find(v => v.time) || dts[0]).date;
+  if (!d.time) { const x = dts.find(v => v.time); if (x) d.time = x.time; }
+  if (d.time === "--") d.time = "";
+  d.amount = findAmount(lines);
+  d.summary = ({ train: "기차", taxi: "택시", bus: "버스", meal: "식대", parking: "주차비", toll: "통행료", fuel: "주유비" })[kind] || "";
+  return d;
+}
+const KIND_KO = { train: "기차", taxi: "택시", bus: "버스", subway: "지하철", meal: "식대", parking: "주차비", toll: "통행료", fuel: "주유비", other: "" };
+function receiptLabel(r) {
+  const d = r.data; if (!d) return "";
+  if (d.kind === "meal") return `식대 · ${d.merchant || ""}`.trim();
+  const route = d.from || d.to ? `${d.from || "?"} → ${d.to || "?"}` : (d.summary || d.merchant);
+  return [KIND_KO[d.kind] || d.summary, route, d.time].filter(Boolean).join(" · ");
+}
+
+/* ---------- 영수증 썸네일 ---------- */
+function renderReceipts() {
+  const box = $("#thumbs"); box.innerHTML = "";
+  const used = new Map(items.map((it, i) => [it.receiptId, i + 1]));
+  receipts.forEach(r => {
+    const el = document.createElement("div"); el.className = "thumb";
+    let st = "", cls = "";
+    if (r.status === "loading") st = "여는 중…";
+    else if (r.status === "waiting" || r.status === "queued") st = "읽기 대기";
+    else if (r.status === "reading") st = "글자 읽는 중…";
+    else if (r.status === "done" && r.dupOf) { st = "중복으로 보여요 · 문서에서 뺌"; cls = "err"; }
+    else if (r.status === "done") { st = receiptLabel(r) || "종류를 모름 · 설명 직접 입력"; cls = r.data && r.data.kind !== "other" ? "ok" : ""; }
+    else if (r.status === "manual") st = "직접 입력";
+    else if (r.status === "error") { st = r.err || "오류"; cls = "err"; }
+    const n = used.get(r.id);
+    el.innerHTML = `${r.url ? `<img alt="">` : `<div style="height:96px"></div>`}<div class="st ${cls}"></div>`;
+    if (r.url) el.querySelector("img").src = r.url;
+    const sy = r.sync === "uploading" ? " · 다른 기기로 보내는 중" : r.sync === "fail" ? " · " + (r.syncErr || "전송 실패") : "";
+    el.querySelector(".st").textContent = (n ? `문서 ${n}번 · ` : "") + st + sy;
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "✕"; x.setAttribute("aria-label", "영수증 빼기");
+    x.onclick = () => removeReceipt(r); el.append(x);
+    if (r.src && !n && items.length) {
+      const a = document.createElement("button"); a.className = "add"; a.textContent = "문서에 추가";
+      a.onclick = () => { items.push({ id: nid("i"), receiptId: r.id, comment: localComment(r) }); afterItems(); };
+      el.append(a);
+    }
+    if (r.status === "error" && r.src && ocrState !== "fail") {
+      const a = document.createElement("button"); a.className = "add"; a.textContent = "다시 읽기";
+      a.onclick = () => enqueueRead(r); el.append(a);
+    }
+    box.append(el);
+  });
+  const ok = receipts.filter(r => r.src).length;
+  $("#rcptCount").textContent = receipts.length ? `${ok}장` : "";
+  updateGen(); updateMbar();
+}
+function removeReceipt(r, fromRemote) {
+  if (!fromRemote && r.synced) deleteRemote(r);
+  receipts = receipts.filter(x => x !== r);
+  items = items.filter(it => it.receiptId !== r.id);
+  if (r.url) URL.revokeObjectURL(r.url);
+  renderReceipts(); renderItems(); schedule();
+  if (!fromRemote) queueWrite("items");
+}
+
+/* ---------- 문서 만들기 ---------- */
+let genCtl = null;
+function updateGen() {
+  const b = $("#genBtn"); const pend = receipts.filter(r => ["loading", "waiting", "queued", "reading"].includes(r.status)).length;
+  const total = receipts.length;
+  if (genCtl) return;
+  if (pend) { b.disabled = true; b.textContent = `영수증 읽는 중… (${total - pend}/${total})`; }
+  else { b.disabled = !receipts.some(r => r.src) && !segsFilled().length; b.textContent = items.length ? "증빙 문서 다시 만들기" : "증빙 문서 만들기"; }
+}
+const segsFilled = () => trip.segments.filter(s => s.from.trim() || s.to.trim());
+const won = n => Number(n || 0).toLocaleString("ko-KR") + "원";
+function rulesMap() {
+  const m = [];
+  settings.rules.split("\n").forEach(l => { const p = l.split(/→|->|>/); if (p.length >= 2 && p[0].trim()) m.push([p[0].trim(), p.slice(1).join(">").trim()]); });
+  return m;
+}
+function conv(name) { name = (name || "").trim(); for (const [a, b] of rulesMap()) if (a === name) return b; return name; }
+function segComment(s, a, b) { return `${conv(a || s.from)} → ${conv(b || s.to)} / ${s.mode || "지하철"}${s.amount ? " / " + won(s.amount) : ""}`; }
+function localComment(r) {
+  const d = r.data; if (!d) return "";
+  if (d.kind === "meal") return mealLabel();
+  if (d.kind === "parking" || d.kind === "toll" || d.kind === "fuel") return KIND_KO[d.kind];
+  const mode = KIND_KO[d.kind] || d.summary || "";
+  if (d.from || d.to) return `${station(d.from, d.kind)} → ${station(d.to, d.kind)}${mode ? " / " + mode : ""}`;
+  return d.summary || d.merchant || "";
+}
+const sortKey = r => r.data && (r.data.date || r.data.time) ? `${r.data.date || "0000-00-00"} ${r.data.time || "00:00"}` : "9999";
+const byKey = (a, b) => { const x = sortKey(a), y = sortKey(b); return x < y ? -1 : x > y ? 1 : receipts.indexOf(a) - receipts.indexOf(b); };
+const station = (s, kind) => { s = conv(s); return kind === "train" && s && !/역$|\)$/.test(s) ? s + "역" : s; };
+const normPlace = s => conv(s).replace(/\(.*?\)/g, "").replace(/\s/g, "").replace(/역$/, "");
+const samePlace = (a, b) => { a = normPlace(a); b = normPlace(b); return !!a && !!b && (a === b || a.includes(b) || b.includes(a)); };
+const TRANSPORT = ["train", "taxi", "bus", "subway"];
+function buildItems() {
+  notes = [];
+  const rs = receipts.filter(r => r.src && !r.dupOf);
+  const dups = receipts.filter(r => r.src && r.dupOf).length;
+  if (dups) notes.push(`중복으로 보이는 영수증 ${dups}장을 뺐어요. 다른 영수증이라면 썸네일의 ‘문서에 추가’를 누르세요.`);
+  const trans = rs.filter(r => r.data && TRANSPORT.includes(r.data.kind)).sort(byKey);
+  const others = rs.filter(r => !trans.includes(r)).sort(byKey);
+  const stops = trip.route.split(/>|→|->|\n/).map(s => s.trim()).filter(Boolean);
+  const segs = segsFilled(); const usedSeg = new Set();
+  let seq = [];
+  const tItem = (r, a, b) => ({ receiptId: r.id, key: sortKey(r), comment: a ? `${conv(a)} → ${conv(b)} / ${KIND_KO[r.data.kind]}` : localComment(r) });
+  if (stops.length >= 2) {
+    let ti = 0;
+    for (let i = 0; i < stops.length - 1; i++) {
+      const a = stops[i], b = stops[i + 1];
+      const si = segs.findIndex((s, k) => !usedSeg.has(k) && samePlace(s.from, a) && samePlace(s.to, b));
+      if (si >= 0) { usedSeg.add(si); seq.push({ receiptId: null, comment: segComment(segs[si], a, b) }); continue; }
+      if (ti < trans.length) seq.push(tItem(trans[ti++], a, b));
+      else notes.push(`‘${conv(a)} → ${conv(b)}’ 구간에 맞는 교통 영수증이 없어요. 필요하면 ‘설명만 있는 줄’로 추가하세요.`);
+    }
+    if (ti < trans.length) {
+      notes.push(`이동 경로의 구간 수보다 교통 영수증이 ${trans.length - ti}장 많아요. 뒤쪽 항목의 설명을 확인해 주세요.`);
+      trans.slice(ti).forEach(r => seq.push(tItem(r)));
+    }
+  } else {
+    if (trans.length) notes.push("이동 경로를 입력하면 설명이 경로 이름으로 맞춰져요. 지금은 영수증에서 읽은 이름을 썼어요.");
+    seq = trans.map(r => tItem(r));
+  }
+  segs.forEach((s, k) => {
+    if (usedSeg.has(k)) return;
+    const it = { receiptId: null, comment: segComment(s) };
+    if (stops.length >= 2) notes.push(`‘${segComment(s)}’ 구간은 이동 경로에 없어서 ${samePlace(s.from, stops[0]) ? "맨 앞" : "맨 뒤"}에 넣었어요.`);
+    if (samePlace(s.from, stops[0] || "자택") && !samePlace(s.to, stops[0] || "자택")) seq.unshift(it); else seq.push(it);
+  });
+  for (const r of others) {
+    const k = sortKey(r), it = { receiptId: r.id, key: k, comment: localComment(r) };
+    if (r.data && r.data.kind === "other") notes.push(`종류를 알 수 없는 영수증이 있어요. 해당 줄의 설명을 직접 입력해 주세요.`);
+    if (k === "9999") { seq.push(it); continue; }
+    let pos = -1; seq.forEach((x, i) => { if (x.key && x.key !== "9999" && x.key <= k) pos = i; });
+    if (pos === -1) { const ft = seq.findIndex(x => x.key && x.key !== "9999"); pos = ft === -1 ? seq.length - 1 : ft - 1; }
+    seq.splice(pos + 1, 0, it);
+  }
+  if (rs.some(r => r.status === "manual" || r.status === "error")) notes.push("글자를 읽지 못한 영수증은 맨 뒤에 넣었어요. 위치와 설명을 확인해 주세요.");
+  return seq.map(x => ({ id: nid("i"), receiptId: x.receiptId, comment: x.comment }));
+}
+$("#genBtn").onclick = () => {
+  if (items.length && !confirmArmed) {
+    confirmArmed = true; flash("다시 만들면 직접 고친 설명이 바뀝니다. 한 번 더 누르면 다시 만들어요.");
+    setTimeout(() => { confirmArmed = false; }, 5000); return;
+  }
+  confirmArmed = false; $("#genStatus").textContent = "";
+  items = buildItems(); afterItems();
+};
+let confirmArmed = false;
+$("#addText").onclick = () => { items.push({ id: nid("i"), receiptId: null, comment: "" }); afterItems(); const ins = document.querySelectorAll("#items textarea"); ins[ins.length - 1]?.focus(); };
+
+/* ---------- 항목 목록 ---------- */
+function afterItems() { renderItems(); renderReceipts(); schedule(); updateGen(); updateExport(); queueWrite("items"); }
+function renderItems() {
+  const box = $("#items"); box.innerHTML = "";
+  const nb = $("#notes"); nb.innerHTML = "";
+  if (notes.length) { const p = document.createElement("div"); p.className = "notes"; const ul = document.createElement("ul"); notes.forEach(n => { const li = document.createElement("li"); li.textContent = n; ul.append(li); }); p.append(ul); nb.append(p); }
+  $("#itemsHint").hidden = !!items.length;
+  items.forEach((it, i) => {
+    const r = receipts.find(x => x.id === it.receiptId);
+    const row = document.createElement("div"); row.className = "item";
+    row.innerHTML = `<span class="n">${i + 1}.</span>${r ? `<img alt="">` : `<span class="noimg">영수증<br>없음</span>`}
+      <textarea rows="1" aria-label="${i + 1}번 설명" id="it-${it.id}" placeholder="설명"></textarea>
+      <span class="btns"><button class="icon ghost" data-a="up" aria-label="위로">↑</button><button class="icon ghost" data-a="down" aria-label="아래로">↓</button><button class="icon ghost" data-a="del" aria-label="삭제">✕</button></span>`;
+    if (r) row.querySelector("img").src = r.url;
+    const inp = row.querySelector("textarea"); inp.value = it.comment;
+    const fit = () => { inp.style.height = "auto"; inp.style.height = inp.scrollHeight + 2 + "px"; };
+    inp.oninput = () => { it.comment = inp.value.replace(/\n/g, " "); fit(); schedule(); queueWrite("items"); };
+    requestAnimationFrame(fit);
+    row.querySelector('[data-a="up"]').disabled = i === 0;
+    row.querySelector('[data-a="down"]').disabled = i === items.length - 1;
+    row.querySelectorAll("[data-a]").forEach(btn => btn.onclick = () => {
+      const a = btn.dataset.a;
+      if (a === "del") items.splice(i, 1);
+      else { const j = a === "up" ? i - 1 : i + 1; [items[i], items[j]] = [items[j], items[i]]; }
+      afterItems();
+    });
+    box.append(row);
+  });
+}
+
+/* ---------- 페이지 배치 (A4, mm) ---------- */
+const A4W = 210, A4H = 297, MARGIN = 8, GAP = 6, FS = 3.5, LH = 5.2, CAPGAP = 1.6;
+function geometry() {
+  const rows = settings.perPage === 4 ? 2 : 1;
+  return { rows, cols: 2, sw: (A4W - 2 * MARGIN - GAP) / 2, sh: (A4H - 2 * MARGIN - (rows - 1) * GAP) / rows };
+}
+function docEntries() {
+  if (!items.length && !receipts.length) {
+    const nm = settings.name || "홍길동";
+    return [
+      { text: "자택 → 서울역 / 지하철 / 1,550원" },
+      { ph: true, w: 46, h: 100, text: "서울역 → 동대구역 / 기차" },
+      { ph: true, w: 60, h: 80, text: "동대구역 → 계명대학교 동산병원 / 택시" },
+      { ph: true, w: 56, h: 100, text: (settings.mealTpl || "직원식대_CRA{이름}").replace(/\{이름\}/g, nm) },
+      { ph: true, w: 60, h: 80, text: "계명대학교 동산병원 → 동대구역 / 택시" },
+      { ph: true, w: 46, h: 100, text: "동대구역 → 서울역 / 기차" },
+      { text: "서울역 → 자택 / 지하철 / 1,550원" }
+    ].map((e, i) => Object.assign({ num: i + 1 }, e));
+  }
+  return items.map((it, i) => {
+    const r = receipts.find(x => x.id === it.receiptId);
+    return r ? { num: i + 1, text: it.comment, src: r.src, w: r.w, h: r.h, r } : { num: i + 1, text: it.comment };
+  });
+}
+function paginate(entries) {
+  const slots = []; let pre = [];
+  for (const e of entries) { if (e.src || e.ph) { slots.push({ pre, img: e }); pre = []; } else pre.push(e); }
+  if (pre.length) slots.push({ pre, img: null });
+  const per = settings.perPage === 4 ? 4 : 2, pages = [];
+  for (let i = 0; i < slots.length; i += per) pages.push(slots.slice(i, i + per));
+  return pages;
+}
+function wrap(measure, text, maxW) {
+  const out = []; let line = "";
+  for (const ch of text) {
+    if (measure(line + ch) > maxW && line) { out.push(line); line = ch.trim() ? ch : ""; }
+    else line += ch;
+  }
+  if (line || !out.length) out.push(line);
+  return out;
+}
+const label = e => `${e.num}. ${(e.text || "").trim()}`;
+function fontStr(px) { return `400 ${px}px "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif`; }
+// 슬롯 안 배치를 mm 단위로 계산 (캔버스와 Word가 같이 씀)
+function slotLayout(slot, measureMm) {
+  const g = geometry(); const out = { pre: [], img: null, cap: [] }; let y = 0;
+  slot.pre.forEach(t => { const lines = wrap(measureMm, label(t), g.sw); out.pre.push({ lines, y }); y += lines.length * LH + 1.5; });
+  if (slot.img) {
+    const cap = wrap(measureMm, label(slot.img), g.sw);
+    const maxH = g.sh - y - CAPGAP - cap.length * LH;
+    const k = Math.min(g.sw / slot.img.w, Math.max(10, maxH) / slot.img.h);
+    out.img = { y, w: slot.img.w * k, h: slot.img.h * k };
+    out.cap = { lines: cap, y: y + out.img.h + CAPGAP };
+  }
+  return out;
+}
+let mctx = null;
+function measurerMm() {
+  if (!mctx) mctx = document.createElement("canvas").getContext("2d");
+  mctx.font = fontStr(100);
+  return s => mctx.measureText(s).width * FS / 100;
+}
+function drawPage(canvas, page, pxPerMm) {
+  const g = geometry(); const W = Math.round(A4W * pxPerMm), H = Math.round(A4H * pxPerMm);
+  canvas.width = W; canvas.height = H;
+  const c = canvas.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, W, H);
+  c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
+  c.textBaseline = "alphabetic"; c.font = fontStr(FS * pxPerMm); c.fillStyle = "#000";
+  const meas = measurerMm(); const P = v => v * pxPerMm;
+  const text = (s, xMm, yMm) => c.fillText(s, P(xMm), P(yMm + LH * 0.74));
+  page.forEach((slot, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const x0 = MARGIN + col * (g.sw + GAP), y0 = MARGIN + row * (g.sh + GAP);
+    const L = slotLayout(slot, meas);
+    c.fillStyle = "#000";
+    L.pre.forEach(p => p.lines.forEach((l, k) => text(l, x0, y0 + p.y + k * LH)));
+    if (L.img) {
+      const x = P(x0), y = P(y0 + L.img.y), w = P(L.img.w), h = P(L.img.h);
+      if (slot.img.src) c.drawImage(slot.img.src, x, y, w, h);
+      else {
+        c.fillStyle = "#f2f3f2"; c.fillRect(x, y, w, h); c.fillStyle = "#9aa19d";
+        c.textAlign = "center"; c.fillText("영수증 이미지", x + w / 2, y + h / 2); c.textAlign = "left";
+      }
+      const lw = Math.max(1, P(0.3)); c.lineWidth = lw; c.strokeStyle = "#000"; c.strokeRect(x + lw / 2, y + lw / 2, w - lw, h - lw);
+      c.fillStyle = "#000";
+      L.cap.lines.forEach((l, k) => text(l, x0, y0 + L.cap.y + k * LH));
+    }
+  });
+}
+
+/* ---------- 미리보기 ---------- */
+let rt = null;
+function schedule() { clearTimeout(rt); rt = setTimeout(renderPreview, 120); }
+async function fontsReady() { try { await document.fonts.load(fontStr(20), "가나다123"); } catch {} }
+async function renderPreview() {
+  await fontsReady();
+  const ex = !items.length && !receipts.length;
+  $("#exampleTag").hidden = !ex;
+  const pages = paginate(docEntries());
+  const box = $("#pages");
+  while (box.children.length > pages.length) box.lastChild.remove();
+  while (box.children.length < pages.length) {
+    const d = document.createElement("div"); d.className = "page";
+    d.innerHTML = `<canvas></canvas><span class="pno"></span>`; box.append(d);
+  }
+  const cw = box.firstElementChild ? box.firstElementChild.getBoundingClientRect().width || 300 : 300;
+  const ppm = Math.min(6, (cw * (window.devicePixelRatio || 1)) / A4W);
+  pages.forEach((p, i) => {
+    const el = box.children[i]; drawPage(el.querySelector("canvas"), p, ppm);
+    el.querySelector(".pno").textContent = `${i + 1} / ${pages.length}`;
+  });
+  updateExport();
+}
+window.addEventListener("resize", schedule);
+
+/* ---------- 저장 ---------- */
+function updateExport() {
+  const has = items.length > 0;
+  $("#pdfBtn").disabled = !has || !downloads; $("#docxBtn").disabled = !has || !downloads;
+  if (typeof updateMbar === "function" && document.getElementById("mbarInfo")) try { updateMbar(); } catch {}
+  const s = $("#exportStatus");
+  if (!has) s.textContent = "";
+  const sh = $("#pdfShare"); if (sh) sh.disabled = !has;
+}
+function fname(ext) { return (($("#fname").value || "영수증증빙").trim().replace(/[\\/:*?"<>|]/g, "_")) + "." + ext; }
+async function save(blob, name) {
+  const share = shareNext; shareNext = false;
+  const type = name.endsWith(".pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (share && CAN_SHARE) return doShare(new File([blob], name, { type }));
+  downloadFile(blob, name);
+}
+$("#pdfBtn").onclick = async () => {
+  const b = $("#pdfBtn"); b.disabled = true; $("#exportStatus").textContent = "PDF 만드는 중…";
+  try {
+    await fontsReady();
+    if (!window.jspdf) throw new Error("jspdf.umd.min.js 파일이 서버에 없어요");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    const pages = paginate(docEntries()); const cv = document.createElement("canvas");
+    pages.forEach((p, i) => {
+      drawPage(cv, p, 200 / 25.4);
+      if (i) doc.addPage("a4", "portrait");
+      doc.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, A4W, A4H, undefined, "FAST");
+    });
+    await save(doc.output("blob"), fname("pdf"));
+  } catch (e) { $("#exportStatus").className = "status err"; $("#exportStatus").textContent = "PDF를 만들지 못했어요."; }
+  b.disabled = false;
+};
+
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const TW = mm => Math.round(mm * 56.6929), EMU = mm => Math.round(mm * 36000);
+function wPara(text, after) {
+  return `<w:p><w:pPr><w:spacing w:before="0" w:after="${after}" w:line="${TW(LH)}" w:lineRule="exact"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Malgun Gothic" w:hAnsi="Malgun Gothic" w:eastAsia="맑은 고딕"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p>`;
+}
+$("#docxBtn").onclick = async () => {
+  const b = $("#docxBtn"); b.disabled = true; $("#exportStatus").textContent = "Word 파일 만드는 중…";
+  try {
+    await fontsReady();
+    const zip = new JSZip(); const g = geometry(); const meas = measurerMm();
+    const pages = paginate(docEntries()); const rels = []; let pic = 0; const media = new Map();
+    const cell = (slot, w) => {
+      if (!slot) return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr><w:p/></w:tc>`;
+      const L = slotLayout(slot, meas); let x = "";
+      L.pre.forEach((p, i) => p.lines.forEach((l, k) => { x += wPara(k ? "   " + l : l, k === p.lines.length - 1 ? TW(1.5) : 0); }));
+      if (L.img) {
+        const r = slot.img.r; let rid = media.get(r.id);
+        if (!rid) { pic++; rid = "rIdImg" + pic; media.set(r.id, rid); zip.file(`word/media/image${pic}.jpeg`, r.blob); rels.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${pic}.jpeg"/>`); }
+        const id = 100 + (++pic), cx = EMU(L.img.w * 0.97), cy = EMU(L.img.h * 0.97);
+        x += `<w:p><w:pPr><w:spacing w:before="0" w:after="${TW(CAPGAP)}"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:effectExtent l="6350" t="6350" r="6350" b="6350"/><wp:docPr id="${id}" name="영수증 ${slot.img.num}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${id}" name="receipt${slot.img.num}.jpeg"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="12700"><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+        L.cap.lines.forEach((l, k) => { x += wPara(k ? "   " + l : l, 0); });
+      }
+      return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr>${x || "<w:p/>"}</w:tc>`;
+    };
+    const cw = TW(g.sw), gw = TW(GAP), rowH = TW(g.sh - (g.rows === 2 ? 2 : 1.5));
+    let body = "";
+    pages.forEach((p, pi) => {
+      let rows = "";
+      for (let r = 0; r < g.rows; r++) {
+        const a = p[r * 2], c2 = p[r * 2 + 1];
+        if (!a && !c2) break;
+        rows += `<w:tr><w:trPr><w:trHeight w:val="${rowH}" w:hRule="exact"/><w:cantSplit/></w:trPr>${cell(a, cw)}<w:tc><w:tcPr><w:tcW w:w="${gw}" w:type="dxa"/></w:tcPr><w:p/></w:tc>${cell(c2, cw)}</w:tr>`;
+        if (r < g.rows - 1 && p[(r + 1) * 2]) rows += `<w:tr><w:trPr><w:trHeight w:val="${TW(GAP - 1)}" w:hRule="exact"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${cw}" w:type="dxa"/></w:tcPr><w:p/></w:tc><w:tc><w:tcPr><w:tcW w:w="${gw}" w:type="dxa"/></w:tcPr><w:p/></w:tc><w:tc><w:tcPr><w:tcW w:w="${cw}" w:type="dxa"/></w:tcPr><w:p/></w:tc></w:tr>`;
+      }
+      body += `<w:tbl><w:tblPr><w:tblW w:w="${cw * 2 + gw}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${cw}"/><w:gridCol w:w="${gw}"/><w:gridCol w:w="${cw}"/></w:tblGrid>${rows}</w:tbl>`;
+      body += pi < pages.length - 1
+        ? `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/></w:pPr><w:r><w:br w:type="page"/></w:r></w:p>`
+        : `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/></w:pPr></w:p>`;
+    });
+    const m = TW(MARGIN);
+    zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
+    zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+    zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels.join("")}</Relationships>`);
+    zip.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="${m}" w:right="${m}" w:bottom="${m}" w:left="${m}" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>`);
+    const blob = await zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    await save(blob, fname("docx"));
+  } catch (e) { $("#exportStatus").className = "status err"; $("#exportStatus").textContent = "Word 파일을 만들지 못했어요."; }
+  b.disabled = false;
+};
+
+/* ---------- 이 기기에 임시 저장: 새로고침·앱 전환 뒤에도 유지, 외부 전송 없음 ---------- */
+let syncOn = true; const pendingLocal = new Set();
+const IDB = (() => {
+  let p = null;
+  const open = () => p || (p = new Promise((res, rej) => {
+    const q = indexedDB.open("rcpt", 1);
+    q.onupgradeneeded = () => q.result.createObjectStore("receipts", { keyPath: "id" });
+    q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+  }));
+  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction("receipts", mode); const rq = fn(t.objectStore("receipts")); t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); }); };
+  return { put: v => tx("readwrite", s => s.put(v)), del: id => tx("readwrite", s => s.delete(id)), all: () => tx("readonly", s => s.getAll()) };
+})();
+function stateOf() { return { list: items.map(it => ({ id: it.id, receiptId: it.receiptId, comment: it.comment })), notes }; }
+function queueWrite(name) { if (name === "items") LS.set("rcpt.items", stateOf()); }
+function fillInputs() {
+  $("#tDate").value = trip.date; $("#tRoute").value = trip.route; $("#tMealNote").value = trip.mealNote || "";
+  renderSegs(); setDefaultName();
+}
+async function uploadReceipt(r) {
+  try { await IDB.put({ id: r.id, name: r.name, hash: r.hash || "", createdAt: r.createdAt, blob: r.blob, data: r.data || null }); r.synced = true; } catch {}
+}
+function pushData(r) { if (r.synced) uploadReceipt(r); }
+async function deleteRemote(r) { try { await IDB.del(r.id); } catch {} }
+function markDup(r) {
+  const dup = receipts.find(x => x !== r && !x.dupOf && receipts.indexOf(x) < receipts.indexOf(r) &&
+    ((x.hash && x.hash === r.hash) || (x.data && r.data && sameReceipt(x.data, r.data))));
+  if (dup) r.dupOf = dup.id;
+}
+async function loadSaved(r, blob) {
+  try {
+    r.blob = blob; const bmp = await createImageBitmap(blob);
+    const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+    c.getContext("2d").drawImage(bmp, 0, 0); bmp.close && bmp.close();
+    r.src = c; r.w = c.width; r.h = c.height; r.url = URL.createObjectURL(blob);
+    if (r.data) { r.status = "done"; markDup(r); } else enqueueRead(r);
+  } catch { r.status = "error"; r.err = "이미지를 불러오지 못했어요."; }
+  renderReceipts(); renderItems(); schedule();
+}
+(async () => {
+  if (UP_SID) return;
+  const st = LS.get("rcpt.items", null);
+  if (st && Array.isArray(st.list)) { items = st.list.map(x => ({ id: String(x.id), receiptId: x.receiptId || null, comment: String(x.comment || "") })); notes = st.notes || []; }
+  let saved = [];
+  try { saved = await IDB.all() || []; } catch {}
+  saved.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  for (const s of saved) {
+    const r = { id: s.id, name: s.name, hash: s.hash, status: "loading", data: s.data || null, synced: true, createdAt: s.createdAt };
+    receipts.push(r); loadSaved(r, s.blob);
+  }
+  const ids = new Set(receipts.map(r => r.id));
+  items = items.filter(it => !it.receiptId || ids.has(it.receiptId));
+  renderReceipts(); renderItems(); updateExport(); schedule();
+  if (saved.length) flash(`이전에 올린 영수증 ${saved.length}장을 불러왔어요. 새 외근이면 ‘새 외근 시작’을 누르세요.`);
+})();
+
+/* ---------- 새 외근 / 모바일 하단 바 / 보내기 ---------- */
+let newArmed = false;
+const NEW_LABEL = "새 외근 시작 (영수증·항목 비우기)";
+$("#newTrip").onclick = async () => {
+  if (!newArmed) { newArmed = true; $("#newTrip").textContent = "한 번 더 누르면 영수증과 항목을 모두 지워요"; setTimeout(() => { newArmed = false; $("#newTrip").textContent = NEW_LABEL; }, 5000); return; }
+  newArmed = false; $("#newTrip").textContent = NEW_LABEL;
+  const old = receipts.slice();
+  receipts = []; items = []; notes = []; queue.length = 0;
+  trip.date = ""; trip.route = ""; trip.mealNote = ""; saveTrip(); fillInputs();
+  renderReceipts(); afterItems(); flash("새 외근을 시작했어요.");
+  if (relayOn) $("#relayNew").click();
+  for (const r of old) { if (r.url) URL.revokeObjectURL(r.url); await deleteRemote(r); }
+};
+const CAN_SHARE = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "a.pdf", { type: "application/pdf" })] })); } catch { return false; } })();
+document.querySelectorAll(".share-only").forEach(el => { el.hidden = !CAN_SHARE; });
+$("#mPdf").textContent = CAN_SHARE ? "PDF 보내기" : "PDF 저장";
+function updateMbar() {
+  const n = receipts.filter(r => r.src).length, pend = receipts.filter(r => ["loading", "waiting", "queued", "reading"].includes(r.status)).length;
+  $("#mbarInfo").textContent = !n ? "영수증을 올려 주세요" : pend ? `${n}장 · 읽는 중…` : items.length ? `${n}장 · 문서 ${items.length}줄` : `${n}장 준비됨`;
+  $("#mGen").disabled = $("#genBtn").disabled; $("#mGen").textContent = items.length ? "다시 만들기" : "문서 만들기";
+  $("#mPdf").disabled = $("#pdfBtn").disabled;
+}
+$("#mGen").onclick = () => { $("#genBtn").click(); $(".c-items").scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("#mPdf").onclick = () => (CAN_SHARE ? $("#pdfShare") : $("#pdfBtn")).click();
+let shareNext = false, pendingShare = null;
+$("#pdfShare").onclick = () => { shareNext = true; $("#pdfBtn").click(); };
+$("#shareReady").onclick = async () => { if (!pendingShare) return; const f = pendingShare; pendingShare = null; $("#shareReady").hidden = true; await doShare(f); };
+async function doShare(file) {
+  const s = $("#exportStatus"); s.className = "status";
+  try { await navigator.share({ files: [file], title: file.name }); s.textContent = `${file.name}을 보냈어요.`; }
+  catch (e) {
+    if (e && e.name === "AbortError") { s.textContent = "보내기를 취소했어요."; return; }
+    if (e && e.name === "NotAllowedError") { pendingShare = file; $("#shareReady").hidden = false; s.textContent = "파일이 준비됐어요. ‘눌러서 보내기’를 눌러 주세요."; return; }
+    downloadFile(file, file.name); 
+  }
+}
+function downloadFile(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+  const s = $("#exportStatus"); s.className = "status"; s.textContent = `${name}을 저장했어요.`;
+}
+
+/* ---------- 휴대폰 → PC 사진 전송 (QR) ---------- */
+let relaySid = "", relayTimer = null, relayLast = 0, relayGot = new Set(), relayCount = 0, relayOn = false;
+const relayUrl = p => RELAY + "/s/" + relaySid + (p ? "/" + p : "");
+function newSid() { const a = new Uint8Array(18); crypto.getRandomValues(a); return btoa(String.fromCharCode(...a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+function setRelay(cls, msg) { const el = $("#relayState"); el.className = "sync-state " + cls; el.textContent = msg; }
+function startRelay(fresh) {
+  if (!RELAY || !IS_DESKTOP || UP_SID) return;
+  let sid = ""; try { sid = fresh ? "" : (sessionStorage.getItem("rcpt.sid") || ""); } catch {}
+  relaySid = sid || newSid(); try { sessionStorage.setItem("rcpt.sid", relaySid); } catch {}
+  relayGot = new Set(); relayCount = 0; relayOn = true;
+  $("#relayBox").hidden = false; $("#howBox").hidden = true; $("#qr").hidden = false;
+  const link = location.origin + location.pathname + "?up=" + relaySid;
+  try { const q = qrcode(0, "M"); q.addData(link); q.make(); $("#qr").innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+  catch { $("#qr").textContent = "QR을 만들지 못했어요"; }
+  setRelay("", "휴대폰 카메라로 QR을 찍어 주세요");
+  resumeRelay();
+}
+function resumeRelay() { clearTimeout(relayTimer); $("#relayResume").hidden = true; relayLast = Date.now(); tick(); }
+async function tick() {
+  relayTimer = null;
+  if (document.hidden) { relayTimer = setTimeout(tick, 4000); return; }
+  if (Date.now() - relayLast > 20 * 60 * 1000) { setRelay("", "20분 동안 새 사진이 없어 받기를 쉬고 있어요"); $("#relayResume").hidden = false; return; }
+  const sid = relaySid;
+  try {
+    const r = await fetch(relayUrl(), { cache: "no-store" });
+    if (!r.ok) throw new Error(String(r.status));
+    const j = await r.json();
+    for (const it of (j.items || [])) {
+      if (sid !== relaySid || relayGot.has(it.id)) continue;
+      const b = await fetch(relayUrl(it.id), { cache: "no-store" });
+      if (!b.ok) continue;
+      relayGot.add(it.id);
+      const blob = await b.blob();
+      relayLast = Date.now();
+      const n = await addFiles([new File([blob], it.name || "receipt.jpg", { type: blob.type || "image/jpeg" })]);
+      if (n) { relayCount++; flash(`휴대폰에서 영수증이 들어왔어요 (${relayCount}장)`); }
+    }
+    if (sid === relaySid) setRelay("on", relayCount ? `휴대폰에서 ${relayCount}장 받음 · 계속 받는 중` : "휴대폰 카메라로 QR을 찍어 주세요");
+  } catch (e) {
+    setRelay("off", "중계 서버에 연결하지 못했어요 · 자동으로 다시 시도해요");
+  }
+  if (sid === relaySid && !relayTimer) relayTimer = setTimeout(tick, 2500);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && relayOn && relayTimer) { clearTimeout(relayTimer); tick(); } });
+$("#relayResume").onclick = resumeRelay;
+$("#relayNew").onclick = () => { if (relaySid) fetch(relayUrl(), { method: "DELETE" }).catch(() => {}); clearTimeout(relayTimer); relayTimer = null; startRelay(true); };
+
+/* ---------- 휴대폰 전송 화면 (?up=…) ---------- */
+const upItems = [];
+async function shrink(file) {
+  const bmp = await createImageBitmap(file);
+  let max = 1800, q = 0.85, blob = null;
+  for (let i = 0; i < 5; i++) {
+    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const cx = c.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(bmp, 0, 0, c.width, c.height);
+    blob = await new Promise(res => c.toBlob(res, "image/jpeg", q));
+    if (blob && blob.size <= 1800000) break;
+    q = Math.max(0.5, q - 0.1); max = Math.round(max * 0.85);
+  }
+  bmp.close && bmp.close();
+  if (!blob) throw new Error("convert");
+  return blob;
+}
+function renderUp() {
+  const box = $("#upList"); box.innerHTML = "";
+  upItems.forEach(it => {
+    const el = document.createElement("div"); el.className = "thumb" + (it.fail ? " fail" : "");
+    el.innerHTML = `${it.url ? "<img alt=\"\">" : "<div style=\"height:96px\"></div>"}<div class="st"></div>`;
+    if (it.url) el.querySelector("img").src = it.url;
+    const st = el.querySelector(".st"); st.textContent = it.status; st.className = "st" + (it.taken ? " ok" : it.fail ? " err" : "");
+    if (it.fail && it.file) { el.style.cursor = "pointer"; el.onclick = () => { upItems.splice(upItems.indexOf(it), 1); upFiles([it.file]); }; }
+    box.append(el);
+  });
+  const sent = upItems.filter(x => x.ok).length, taken = upItems.filter(x => x.taken).length;
+  $("#upStatus").textContent = !upItems.length ? "아직 보낸 사진이 없어요" : `${sent}장 보냄` + (taken ? ` · PC가 ${taken}장 받음` : "") + (sent && taken === sent ? " · 다 보냈으면 이 창을 닫아도 돼요" : "");
+}
+async function upFiles(files) {
+  for (const f of files) {
+    const it = { id: null, name: f.name || "receipt.jpg", status: "보내는 중…", url: null };
+    upItems.push(it); renderUp();
+    try {
+      const blob = await shrink(f);
+      it.url = URL.createObjectURL(blob); renderUp();
+      const r = await fetch(RELAY + "/s/" + UP_SID, { method: "POST", headers: { "Content-Type": "image/jpeg", "X-File-Name": encodeURIComponent(it.name) }, body: blob });
+      if (r.status === 429) throw new Error("full");
+      if (!r.ok) throw new Error(String(r.status));
+      it.id = (await r.json()).id; it.ok = true; it.status = "보냄 · PC 확인 기다리는 중";
+    } catch (e) {
+      it.fail = true; it.file = f;
+      it.status = e.message === "full" ? "한 번에 보낼 수 있는 장수(60장)를 넘었어요" : e.message === "convert" ? "이 사진은 열 수 없어요" : "보내지 못했어요 · 눌러서 다시 보내기";
+    }
+    renderUp();
+  }
+  watchTaken();
+}
+let watchT = null, watchUntil = 0;
+function watchTaken() {
+  watchUntil = Date.now() + 15 * 60 * 1000;
+  if (watchT) return;
+  const run = async () => {
+    watchT = null;
+    const pending = upItems.filter(x => x.ok && !x.taken);
+    if (!pending.length || Date.now() > watchUntil) return;
+    try {
+      const j = await (await fetch(RELAY + "/s/" + UP_SID, { cache: "no-store" })).json();
+      const taken = new Set(j.taken || []);
+      pending.forEach(x => { if (taken.has(x.id)) { x.taken = true; x.status = "PC가 받았어요 ✓"; } });
+      renderUp();
+    } catch {}
+    watchT = setTimeout(run, 3000);
+  };
+  watchT = setTimeout(run, 1500);
+}
+function initUpMode() {
+  document.body.classList.add("is-up");
+  $("#upMode").hidden = false;
+  if (!RELAY) { $("#upStatus").textContent = "중계 서버 주소가 설정되지 않아 보낼 수 없어요. 사이트 관리자에게 config.js 설정을 요청하세요."; $("#upPick").disabled = $("#upCam").disabled = true; return; }
+  const fi = $("#upFile"), cam = $("#upCamIn");
+  $("#upPick").onclick = () => fi.click(); $("#upCam").onclick = () => cam.click();
+  fi.onchange = () => { upFiles([...fi.files]); fi.value = ""; };
+  cam.onchange = () => { upFiles([...cam.files]); cam.value = ""; };
+  renderUp();
+}
+if (UP_SID) initUpMode(); else startRelay(false);
+
+// 시험용 훅 (페이지 동작에는 영향 없음)
+window.__rcpt = { addFiles, get items() { return items; }, set items(v) { items = v; afterItems(); }, receipts: () => receipts, paginate, docEntries, drawPage, settings };
+
+renderReceipts(); renderItems(); updateGen(); schedule();
+})();
+</script>
+</body>
+</html>
